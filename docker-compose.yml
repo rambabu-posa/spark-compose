@@ -1,0 +1,43 @@
+version: '2'
+
+services:
+  hdfs-namenode:
+    image: docker.pkg.github.com/veiasai/spark-compose/hadoop:2.7
+    volumes:
+      - ./data/namenode:/hadoop/dfs/name
+    ports:
+    # HDFS port
+    - "9000:9000"
+    # HDFS NameNode WebUI
+    - "50070:50070"
+    cpu_shares: 3000
+    mem_limit: 2g
+
+  hdfs-datanode:
+    image: docker.pkg.github.com/veiasai/spark-compose/hadoop:2.7
+    volumes:
+      - ./data/datanode:/hadoop/dfs/data
+    cpu_shares: 3000
+    mem_limit: 2g
+
+  spark-master:
+    image: docker.pkg.github.com/veiasai/spark-compose/spark:2.4.5
+    ports:
+    # Spark master WebUI port
+    - "8080:8080"
+    # Spark master job submission port
+    - "7077:7077"
+    entrypoint: ['/bin/sh', '-c', '/opt/spark-2.4.5-bin-hadoop2.7/sbin/start-master.sh']
+    cpu_shares: 3000
+    mem_limit: 2g
+
+  spark-worker:
+    image: docker.pkg.github.com/veiasai/spark-compose/spark:2.4.5
+    entrypoint: ['/bin/sh', '-c', '/opt/spark-2.4.5-bin-hadoop2.7/sbin/start-slave.sh spark://spark-master:7077']
+    cpu_shares: 3000
+    mem_limit: 2g
+
+  zeppelin/zeppelin:
+    image: zeppelin/zeppelin
+    ports:
+    - "8090:8080"
